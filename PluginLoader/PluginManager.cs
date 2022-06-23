@@ -8,13 +8,34 @@ using System.Threading.Tasks;
 
 namespace PluginLoader
 {
+    /// <summary>
+    /// 插件加载器
+    /// </summary>
     public class PluginManager : IPluginHost
     {
+
+        /// <summary>
+        /// 已加载插件列表
+        /// </summary>
         public List<PluginContent> Plugins { get; set; } = new();
 
+        /// <summary>
+        /// 加载错误处理程序
+        /// </summary>
+        /// <param name="errorMessage">错误消息</param>
+        /// <param name="filePath">文件路径</param>
+        /// <param name="pluginContent">插件内容</param>
         public delegate void LoadErrorHandler(string errorMessage, string filePath, PluginContent? pluginContent);
+        /// <summary>
+        /// 插件加载错误事件
+        /// </summary>
         public event LoadErrorHandler? PluginLoadError;
 
+        /// <summary>
+        /// 加载插件内容
+        /// </summary>
+        /// <param name="pluginsFilePath"></param>
+        /// <returns></returns>
         private PluginContent? LoadPluginContent(string pluginsFilePath)
         {
             // 检查插件文件是否存在
@@ -47,6 +68,10 @@ namespace PluginLoader
             return null;
         }
 
+        /// <summary>
+        /// 加载插件
+        /// </summary>
+        /// <param name="pluginsFilePath">插件路径</param>
         public void LoadPlugin(string pluginsFilePath)
         {
 
@@ -71,7 +96,10 @@ namespace PluginLoader
             }
         }
 
-
+        /// <summary>
+        /// 加载插件文件夹
+        /// </summary>
+        /// <param name="pluginsDirectory"></param>
         public void LoadPlugins(string? pluginsDirectory = null)
         {
             pluginsDirectory ??= Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Plugins\\");
@@ -105,11 +133,13 @@ namespace PluginLoader
             LoadSuccessHandler(needDependencyplugins);
         }
 
-
+        /// <summary>
+        /// 加载成功后续处理程序
+        /// </summary>
+        /// <param name="plugins"></param>
         private void LoadSuccessHandler(Queue<PluginContent> plugins)
         {
             var needDependPlugins = new Queue<PluginContent>();
-            // 添加普通的
             while (plugins.Count > 0)
             {
                 var pluginContent = plugins.Dequeue();

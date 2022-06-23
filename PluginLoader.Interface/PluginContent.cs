@@ -6,14 +6,9 @@ using System.Threading.Tasks;
 
 namespace PluginLoader.Interface
 {
-    public enum PluginType
-    {
-        Default = 0,
-        NeedPluginLoader = 1,
-        NeedCommands = 2,
-        NeedDepend = 4,
-    }
-
+    /// <summary>
+    /// 插件储存内容
+    /// </summary>
     public class PluginContent
     {
         public string FilePath { get; set; }
@@ -23,9 +18,13 @@ namespace PluginLoader.Interface
         public PluginType PluginType { get; set; }
 
 
+        #region 接口插件便于访问属性所设
         public IPluginAPI? PluginAPI { get; private set; }
         public ICommands? Commands { get; private set; }
         public IPluginLoader? PluginLoader { get; private set; }
+
+        #endregion
+
 
         public PluginContent(string filePath, IPluginHost host, IPlugin plugin, PluginLoadContext loadContext)
         {
@@ -34,6 +33,7 @@ namespace PluginLoader.Interface
             Plugin = plugin;
             LoadContext = loadContext;
 
+            // 设置接口属性
             SetInterface();
         }
 
