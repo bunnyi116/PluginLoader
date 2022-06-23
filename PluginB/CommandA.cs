@@ -10,11 +10,11 @@ namespace PluginB
     /// <summary>
     /// 插件命令实现
     /// </summary>
-    public class CommandB : ICommand
+    public class CommandA : ICommand
     {
-        public string? Prefix { get; set; } = null;
+        public string? Prefix { get; set; } = "/asd";
         public bool IsIgnoreCase { get; set; } = true;
-        public string Name { get; set; } = "TestB";
+        public string Name { get; set; } = "TestA";
         public string? Alias { get; set; } = null;
         public string? Description { get; set; } = null;
 

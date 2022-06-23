@@ -15,8 +15,6 @@ namespace PluginLoader
         public delegate void LoadErrorHandler(string errorMessage, string filePath, PluginContent? pluginContent);
         public event LoadErrorHandler? PluginLoadError;
 
-
-
         private PluginContent? LoadPluginContent(string pluginsFilePath)
         {
             // 检查插件文件是否存在
@@ -81,7 +79,8 @@ namespace PluginLoader
             var directoryInfo = new DirectoryInfo(pluginsDirectory);
             if (!directoryInfo.Exists) { directoryInfo.Create(); }
 
-            var plugins = new Queue<PluginContent>();
+            // 需要前置依赖插件的临时储存
+            var needDependencyplugins = new Queue<PluginContent>();
             foreach (var fileInfo in directoryInfo.GetFiles())
             {
                 var pluginLoadContext = LoadPluginContent(fileInfo.FullName);
@@ -89,6 +88,7 @@ namespace PluginLoader
                 {
                     if (pluginLoadContext.PluginAPI == null)
                     {
+                        // 将不需要前置的API加载进列表
                         Plugins.Add(pluginLoadContext);
                         if (pluginLoadContext.PluginLoader != null)
                         {
@@ -97,12 +97,12 @@ namespace PluginLoader
                         pluginLoadContext.Plugin.Initialize();
                     }
                     // 存在需要前置插件的API，等基础插件加载完成后在获取API
-                    else plugins.Enqueue(pluginLoadContext);
+                    else needDependencyplugins.Enqueue(pluginLoadContext);
                 }
             }
 
-            // 插件全部加载完成，进行下一步处理
-            LoadSuccessHandler(plugins);
+            // 插件全部加载完成，进行下一步依赖获取处理
+            LoadSuccessHandler(needDependencyplugins);
         }
 
 
@@ -143,6 +143,11 @@ namespace PluginLoader
             }
         }
 
+        /// <summary>
+        /// 解析命令（粗略解析，具体是不是命令还得进行命令判断）
+        /// </summary>
+        /// <param name="cmdText">消息文本</param>
+        /// <returns>处理后的命令和参数</returns>
         private static List<string>? ParseCmd(string cmdText)
         {
             cmdText = cmdText.Trim();
@@ -214,6 +219,12 @@ namespace PluginLoader
             }
             return null;
         }
+
+        /// <summary>
+        /// 命令处理程序
+        /// </summary>
+        /// <param name="commandSender">操作人类型</param>
+        /// <param name="cmdText">命令文本内容</param>
         public void CommandHandler(CommandSender commandSender, string cmdText)
         {
             foreach (var pluginContent in Plugins)
@@ -223,9 +234,27 @@ namespace PluginLoader
                     foreach (var cmd in pluginContent.Commands.Commands)
                     {
                         var list = ParseCmd(cmdText);
+                        if (list == null) { return; }
+                        if (list.Count == 0) { return; }
 
+                        // 判断插件命令是否忽略大小写进行比对
                         StringComparison stringComparison = cmd.IsIgnoreCase ? StringComparison.CurrentCultureIgnoreCase : StringComparison.CurrentCulture;
-                        if (list != null && list.Count > 0 && list[0].Equals(cmd.Name, stringComparison))
+
+                        // 判断前缀
+                        var cmdName = list[0];
+                        if (cmd.Prefix != null)
+                        {
+                            var prefix = cmdName[..cmd.Prefix.Length];
+                            if (!prefix.Equals(cmd.Prefix, stringComparison))
+                            {
+                                return; // 前缀不正确，不继续处理了
+                            }
+                            // 前缀正确，将前缀移除，后续处理主命令
+                            cmdName = cmdName[prefix.Length..];
+                        }
+
+                        // 判断命令
+                        if (cmdName.Equals(cmd.Name, stringComparison))
                         {
                             List<string>? cmdArgs = null;
                             if (list.Count > 1)

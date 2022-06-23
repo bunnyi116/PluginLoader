@@ -13,13 +13,24 @@ namespace PluginB
 
         #region API接口实现
 
+        /// <summary>
+        /// 需要前置插件的ID标识
+        /// </summary>
         public string[] PluginIDs => new string[] { "com.github.1160706050.PluginA" };
+
+        /// <summary>
+        /// 用来存放已获取到的前置插件对象
+        /// </summary>
         public PluginDictionary Plugins { get; set; } = new PluginDictionary();
 
         #endregion
 
         #region ICommands 命令接口实现
-        public ICommand[] Commands { get; set; } = new ICommand[] { new CommandB() };
+
+        /// <summary>
+        /// 插件的命令集合，插件接口实现的命令数组
+        /// </summary>
+        public ICommand[] Commands { get; set; } = new ICommand[] { new CommandB(), new CommandA() };
 
         #endregion
 
